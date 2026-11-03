@@ -15,7 +15,7 @@
 
 - バックエンド: PHP 8.5 / Laravel 13（リポジトリ直下。本番も PHP 8.5 に固定）
 - フロントエンド: Next.js 16 / TypeScript / Tailwind CSS（`frontend/`）
-- DB: MySQL 8.4（テストは SQLite メモリ DB）
+- DB: MySQL 8.0（テストは SQLite メモリ DB）
 
 ## 開発環境（Docker）
 

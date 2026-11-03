@@ -5,7 +5,7 @@
 - 詳細は [docs/要件定義書.md](docs/要件定義書.md) を参照
 - バックエンド: PHP 8.5 / Laravel 13（リポジトリ直下）
 - フロントエンド: Next.js 16 / TypeScript / Tailwind CSS（`frontend/`）
-- インフラ: Docker（nginx / PHP-FPM / MySQL 8.4 / phpMyAdmin）
+- インフラ: Docker（nginx / PHP-FPM / MySQL 8.0 / phpMyAdmin）
 
 ## 開発環境
 
