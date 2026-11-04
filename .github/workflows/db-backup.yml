@@ -6,10 +6,6 @@ on:
   schedule:
     - cron: "0 18 * * *" # 毎日 18:00 UTC = 03:00 JST
   workflow_dispatch:
-  pull_request:
-    # 動作確認用（このワークフローの変更時のみ実行）。確認後に削除する。
-    paths:
-      - ".github/workflows/db-backup.yml"
 
 permissions:
   contents: read
