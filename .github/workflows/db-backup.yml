@@ -1,0 +1,57 @@
+name: DB backup
+
+# TiDB のバックアップ。mysqldump で書き出し、公開鍵（age）で暗号化して、暗号化したファイルだけを保存する。
+# 平文の SQL は保存しない。復号用の秘密鍵は手元でのみ保管している（リポジトリや Secrets には置かない）。
+on:
+  schedule:
+    - cron: "0 18 * * *" # 毎日 18:00 UTC = 03:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MYSQL_PWD: ${{ secrets.TIDB_BACKUP_PASSWORD }}
+      HOST: ${{ secrets.TIDB_BACKUP_HOST }}
+      PORT: ${{ secrets.TIDB_BACKUP_PORT }}
+      DB: ${{ secrets.TIDB_BACKUP_DATABASE }}
+      DB_USER: ${{ secrets.TIDB_BACKUP_USERNAME }}
+      AGE_PUBLIC_KEY: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+    steps:
+      - name: Install age
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y age
+
+      - name: Dump
+        run: |
+          mysqldump -h "$HOST" -P "$PORT" -u "$DB_USER" --ssl-mode=REQUIRED \
+            --column-statistics=0 --skip-lock-tables --set-gtid-purged=OFF --no-tablespaces "$DB" > backup.sql
+          tables=$(grep -c '^CREATE TABLE' backup.sql)
+          echo "tables=$tables"
+          test "$tables" -gt 0
+          tail -n 1 backup.sql | grep -q 'Dump completed'
+
+      - name: Encrypt (and remove the plain file)
+        run: |
+          stamp=$(date -u +%Y%m%d-%H%M%S)
+          echo "BACKUP_FILE=backup-$stamp.sql.age" >> "$GITHUB_ENV"
+          age -r "$AGE_PUBLIC_KEY" -o "backup-$stamp.sql.age" backup.sql
+          rm -f backup.sql
+          ls -l backup-*.sql.age
+
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 90
+          if-no-files-found: error
