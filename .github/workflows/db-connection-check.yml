@@ -1,0 +1,34 @@
+name: DB connection check
+
+# GitHub Actions のランナーから TiDB に接続できることの確認用（バックアップのワークフロー作成前の確認）。
+# SQL の内容は出力せず、接続の成否とテーブル数だけを表示する。
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/db-connection-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MYSQL_PWD: ${{ secrets.TIDB_BACKUP_PASSWORD }}
+      HOST: ${{ secrets.TIDB_BACKUP_HOST }}
+      PORT: ${{ secrets.TIDB_BACKUP_PORT }}
+      DB: ${{ secrets.TIDB_BACKUP_DATABASE }}
+      DB_USER: ${{ secrets.TIDB_BACKUP_USERNAME }}
+    steps:
+      - name: Client versions
+        run: mysqldump --version
+      - name: Connect (select 1)
+        run: mysql -h "$HOST" -P "$PORT" -u "$DB_USER" --ssl-mode=REQUIRED -N -e "select 1;"
+      - name: Dump (table count only)
+        run: |
+          mysqldump -h "$HOST" -P "$PORT" -u "$DB_USER" --ssl-mode=REQUIRED \
+            --column-statistics=0 --skip-lock-tables --set-gtid-purged=OFF --no-tablespaces "$DB" > /tmp/dump.sql
+          echo "tables=$(grep -c '^CREATE TABLE' /tmp/dump.sql)"
+          rm -f /tmp/dump.sql
