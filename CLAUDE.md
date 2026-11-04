@@ -15,7 +15,7 @@
 
 - バックエンド: PHP 8.5 / Laravel 13（リポジトリ直下。本番も PHP 8.5 に固定）
 - フロントエンド: Next.js 16 / TypeScript / Tailwind CSS（`frontend/`）
-- DB: MySQL 8.4（テストは SQLite メモリ DB）
+- DB: MySQL 8.0（テストは SQLite メモリ DB）
 
 ## 開発環境（Docker）
 
@@ -37,5 +37,6 @@ docker compose exec php composer <command>
 
 ## 作業ルール
 
+- **フォルダ名はすべて英語**にする（例: `docs/design/`）。ファイル名は日本語でもよい（`docs/要件定義書.md`、`docs/設計書.md` は課題で指定された名前）。
 - コミット・プッシュは依頼があったときだけ行う。
 - 生成したコードは開発者が口頭で説明できるよう、意図を簡潔に説明する。
